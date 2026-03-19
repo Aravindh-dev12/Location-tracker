@@ -16,9 +16,10 @@ class MapManager {
             return;
         }
 
+        console.log('Initializing MapLibre at:', center);
         this.map = new maplibregl.Map({
             container: this.containerId,
-            style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
+            style: 'https://tiles.openfreemap.org/styles/liberty',
             center: [center.lng, center.lat],
             zoom: zoom
         });
@@ -28,8 +29,12 @@ class MapManager {
 
         return new Promise((resolve) => {
             this.map.on('load', () => {
+                console.log('Map style loaded successfully');
                 this.isReady = true;
                 resolve(this);
+            });
+            this.map.on('error', (err) => {
+                console.error('MapLibre error:', err);
             });
         });
     }
@@ -50,6 +55,7 @@ class MapManager {
             <div class="pin-label">${title.split(' ')[0]}</div>
         `;
 
+        console.log(`Adding marker for ${id} at:`, position);
         const marker = new maplibregl.Marker({
             element: pinElement,
             anchor: 'bottom'
