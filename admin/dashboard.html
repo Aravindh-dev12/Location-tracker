@@ -404,14 +404,9 @@
         cursor: pointer;
     }
 </style>
-<!-- Google Maps API -->
-<script>
-    (g => { var h, a, k, p = "The Google Maps JavaScript API", c = "google", l = "importLibrary", q = "__ib__", m = document, b = window; b = b[c] || (b[c] = {}); var d = b["maps"] || (b["maps"] = {}), r = d[q] || (d[q] = new Set), e = new URLSearchParams, u = () => h || (h = new Promise(async (f, n) => { await (a = m.createElement("script")); e.set("libraries", [...r] + String(k || "")); for (k in g) e.set(k.replace(/[A-Z]/g, t => "_" + t[0].toLowerCase()), g[k]); e.set("callback", c + ".maps." + q); a.src = `https://maps.${c}apis.com/maps/api/js?` + e; d[q] = f; a.onerror = () => h = n(Error(p + " could not load.")); a.nonce = m.querySelector("script[nonce]")?.nonce || ""; m.head.append(a) })); d[l] ? console.warn(p + " only loads once. Reusing existing.") : d[l] = (f, ...n) => r.add(f) && u().then(() => d[l](f, ...n)) })({
-        key: "AIzaSyCYxFkL9vcvbaFz-Ut1Lm2Vge5byodujfk",
-        v: "weekly",
-        libraries: ["places", "geocoding"]
-    });
-</script>
+<!-- MapLibre GL JS -->
+<script src="../assets/vendor/maplibre/maplibre-gl.js"></script>
+<link href="../assets/vendor/maplibre/maplibre-gl.css" rel="stylesheet" />
 <style>
     /* Mobile Responsive Styles */
     .mobile-header {
@@ -628,7 +623,7 @@
             } catch (e) {
                 console.error("Map failed to load:", e);
                 const mapDiv = document.getElementById('map');
-                if (mapDiv) mapDiv.innerHTML = '<div style="padding: 20px; color: #ef4444; font-weight: 600;">Map Error: Please check your Google Maps API settings (ProjectDeniedMapError).</div>';
+                if (mapDiv) mapDiv.innerHTML = '<div style="padding: 20px; color: #ef4444; font-weight: 600;">Map Error: Failed to initialize MapLibre GL JS.</div>';
             }
 
             setInterval(loadDashboardData, 5000);
@@ -733,14 +728,14 @@
 
         async function reverseGeocode(id, lat, lng) {
             try {
-                const geocoder = new google.maps.Geocoder();
-                const response = await geocoder.geocode({ location: { lat, lng } });
-                if (response.results[0]) {
-                    const addrDiv = document.getElementById(`emp-address-${id}`);
-                    if (addrDiv) addrDiv.textContent = response.results[0].formatted_address;
-                }
+                const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lng}`, {
+                    headers: { 'Accept-Language': 'en' }
+                });
+                const data = await response.json();
+                const addrDiv = document.getElementById(`emp-address-${id}`);
+                if (addrDiv) addrDiv.textContent = data.display_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
             } catch (error) {
-                console.error('Geocoding error:', error);
+                console.warn('Reverse geocoding failed:', error);
             }
         }
 

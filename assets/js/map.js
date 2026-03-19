@@ -1,3 +1,6 @@
+/**
+ * MapManager using MapLibre GL JS (Free/OpenSource)
+ */
 class MapManager {
     constructor(containerId) {
         this.containerId = containerId;
@@ -7,149 +10,144 @@ class MapManager {
     }
     
     async init(center = { lat: 11.3411, lng: 77.7172 }, zoom = 15) {
-        // Wait for Google Maps to load
-        if (typeof google === 'undefined') {
-            console.error('Google Maps API not loaded');
+        if (typeof maplibregl === 'undefined') {
+            console.error('MapLibre GL JS not loaded');
             return;
         }
 
-        const { Map, InfoWindow } = await google.maps.importLibrary("maps");
-        const { AdvancedMarkerElement } = await google.maps.importLibrary("marker");
-
-        this.map = new Map(document.getElementById(this.containerId), {
-            center: center,
-            zoom: zoom,
-            mapId: "SOLAR_TRACKER_MAP_ID",
-            disableDefaultUI: false,
-            zoomControl: true,
-            mapTypeControl: false,
-            scaleControl: true,
-            streetViewControl: false,
-            rotateControl: false,
-            fullscreenControl: true
+        this.map = new maplibregl.Map({
+            container: this.containerId,
+            style: 'https://demotiles.maplibre.org/style.json',
+            center: [center.lng, center.lat],
+            zoom: zoom
         });
 
-        this.infoWindow = new InfoWindow();
-        this.AdvancedMarkerElement = AdvancedMarkerElement;
-        return this;
+        this.map.addControl(new maplibregl.NavigationControl());
+        this.map.addControl(new maplibregl.FullscreenControl());
+
+        return new Promise((resolve) => {
+            this.map.on('load', () => resolve(this));
+        });
     }
     
-    addMarker(id, position, title = "", iconUrl = null) {
+    addMarker(id, position, title = "") {
         const pinElement = document.createElement("div");
         pinElement.className = "custom-pin";
         pinElement.innerHTML = `
             <div class="pin-anchor"></div>
             <div class="pin-pulse"></div>
-            <div class="pin-icon">
-                <svg viewBox="0 0 24 24" width="24" height="24">
-                    <path fill="currentColor" d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-                </svg>
-            </div>
+            <div class="pin-icon">👤</div>
             <div class="pin-label">${title.split(' ')[0]}</div>
         `;
 
-        const marker = new this.AdvancedMarkerElement({
-            map: this.map,
-            position: position,
-            title: title,
-            content: pinElement,
-            gmpClickable: true
-        });
-        
-        // InfoWindow Listener
-        marker.addListener("click", () => {
-            this.infoWindow.setContent(`
-                <div style="padding: 12px; min-width: 150px;">
-                    <div style="font-weight: 800; color: #1f2937; margin-bottom: 4px;">${title}</div>
-                    <div style="font-size: 11px; color: #6b7280;">User currently active</div>
-                </div>
-            `);
-            this.infoWindow.open(this.map, marker);
-        });
+        const marker = new maplibregl.Marker({
+            element: pinElement,
+            anchor: 'bottom'
+        })
+        .setLngLat([position.lng, position.lat])
+        .addTo(this.map);
 
         this.markers[id] = marker;
 
         // Add Accuracy Circle
-        this.circles[id] = new google.maps.Circle({
-            map: this.map,
-            center: position,
-            radius: 0, // Will be set in update
-            fillColor: "#3b82f6",
-            fillOpacity: 0.1,
-            strokeColor: "#3b82f6",
-            strokeOpacity: 0.3,
-            strokeWeight: 1,
-            clickable: false
+        const sourceId = `accuracy-${id}`;
+        this.map.addSource(sourceId, {
+            type: 'geojson',
+            data: this.createGeoJSONCircle([position.lng, position.lat], 0)
         });
 
+        this.map.addLayer({
+            id: `accuracy-layer-${id}`,
+            type: 'fill',
+            source: sourceId,
+            paint: {
+                'fill-color': '#3b82f6',
+                'fill-opacity': 0.1,
+                'fill-outline-color': '#3b82f6'
+            }
+        });
+
+        this.circles[id] = { sourceId, layerId: `accuracy-layer-${id}` };
         return marker;
     }
     
     updateMarker(id, newPos, accuracy = 10) {
-        if (!this.markers[id]) return;
-        
         const marker = this.markers[id];
         const circle = this.circles[id];
-        const oldPos = marker.position;
-        
-        // Update circle radius immediately
-        if (circle) {
-            circle.setRadius(accuracy);
-            circle.setCenter(newPos);
+        if (!marker) return;
+
+        if (circle && this.map.getSource(circle.sourceId)) {
+            const accuracyKm = (accuracy || 10) / 1000;
+            this.map.getSource(circle.sourceId).setData(
+                this.createGeoJSONCircle([newPos.lng, newPos.lat], accuracyKm)
+            );
         }
 
-        if (!oldPos || (oldPos.lat === newPos.lat && oldPos.lng === newPos.lng)) return;
+        const currentLngLat = marker.getLngLat();
+        const oldPos = { lat: currentLngLat.lat, lng: currentLngLat.lng };
+        if (oldPos.lat === newPos.lat && oldPos.lng === newPos.lng) return;
 
-        // Smooth interpolation over 1 second
         const startTime = Date.now();
         const duration = 1000;
-        
         const animate = () => {
             const elapsed = Date.now() - startTime;
             const progress = Math.min(elapsed / duration, 1);
-            
-            const easedProgress = progress < 0.5 ? 2 * progress * progress : -1 + (4 - 2 * progress) * progress;
+            const eased = progress < 0.5 ? 2 * progress * progress : -1 + (4 - 2 * progress) * progress;
 
-            const lat = oldPos.lat + (newPos.lat - oldPos.lat) * easedProgress;
-            const lng = oldPos.lng + (newPos.lng - oldPos.lng) * easedProgress;
+            const lat = oldPos.lat + (newPos.lat - oldPos.lat) * eased;
+            const lng = oldPos.lng + (newPos.lng - oldPos.lng) * eased;
             
-            const currentPos = { lat, lng };
-            marker.position = currentPos;
-            if (circle) circle.setCenter(currentPos);
-
-            if (progress < 1) {
-                requestAnimationFrame(animate);
-            }
+            marker.setLngLat([lng, lat]);
+            if (progress < 1) requestAnimationFrame(animate);
         };
-        
         requestAnimationFrame(animate);
     }
 
     removeMarker(id) {
         if (this.markers[id]) {
-            this.markers[id].setMap(null);
+            this.markers[id].remove();
             delete this.markers[id];
         }
-        if (this.circles[id]) {
-            this.circles[id].setMap(null);
+        if (this.circles[id] && this.map) {
+            if (this.map.getLayer(this.circles[id].layerId)) this.map.removeLayer(this.circles[id].layerId);
+            if (this.map.getSource(this.circles[id].sourceId)) this.map.removeSource(this.circles[id].sourceId);
             delete this.circles[id];
         }
     }
     
-    panTo(position, zoom = null) {
-        this.map.panTo(position);
-        if (zoom) this.map.setZoom(zoom);
-    }
-
     focusMarker(userId) {
         const marker = this.markers[userId];
         if (marker) {
-            const el = marker.content;
-            el.classList.add('highlight');
-            setTimeout(() => el.classList.remove('highlight'), 3000);
+            marker.getElement().classList.add('highlight');
+            setTimeout(() => marker.getElement().classList.remove('highlight'), 3000);
             
-            this.map.setCenter(marker.position);
-            this.map.setZoom(19);
+            const lngLat = marker.getLngLat();
+            this.map.flyTo({
+                center: lngLat,
+                zoom: 17,
+                essential: true
+            });
         }
+    }
+
+    createGeoJSONCircle(center, radiusInKm, points = 64) {
+        const coords = { latitude: center[1], longitude: center[0] };
+        const ret = [];
+        const distanceX = radiusInKm / (111.32 * Math.cos((coords.latitude * Math.PI) / 180));
+        const distanceY = radiusInKm / 110.574;
+
+        for (let i = 0; i < points; i++) {
+            const theta = (i / points) * (2 * Math.PI);
+            ret.push([coords.longitude + distanceX * Math.cos(theta), coords.latitude + distanceY * Math.sin(theta)]);
+        }
+        ret.push(ret[0]);
+
+        return {
+            type: 'FeatureCollection',
+            features: [{
+                type: 'Feature',
+                geometry: { type: 'Polygon', coordinates: [ret] }
+            }]
+        };
     }
 }
