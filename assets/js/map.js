@@ -17,9 +17,29 @@ class MapManager {
         }
 
         console.log('Initializing MapLibre at:', center);
+        console.log('Initializing Satellite Hybrid Map at:', center);
         this.map = new maplibregl.Map({
             container: this.containerId,
-            style: 'https://tiles.openfreemap.org/styles/bright',
+            style: {
+                version: 8,
+                sources: {
+                    'satellite': {
+                        type: 'raster',
+                        tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}'],
+                        tileSize: 256,
+                        attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EBP, and the GIS User Community'
+                    },
+                    'labels': {
+                        type: 'raster',
+                        tiles: ['https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}'],
+                        tileSize: 256
+                    }
+                },
+                layers: [
+                    { id: 'satellite', type: 'raster', source: 'satellite', minzoom: 0, maxzoom: 20 },
+                    { id: 'labels', type: 'raster', source: 'labels', minzoom: 0, maxzoom: 20 }
+                ]
+            },
             center: [center.lng, center.lat],
             zoom: 17
         });
