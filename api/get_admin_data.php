@@ -70,6 +70,12 @@ require_once '../config.php';
     $reports = [];
     
     while ($row = $result_reports->fetch_assoc()) {
+        if ($row['image_path']) {
+            $path = str_replace('\\', '/', $row['image_path']);
+            if (strpos($path, 'uploads/') !== false) {
+                $row['image_path'] = substr($path, strpos($path, 'uploads/'));
+            }
+        }
         $reports[] = $row;
     }
 

@@ -1,4 +1,4 @@
-const CACHE_NAME = 'solar-tracker-v2';
+const CACHE_NAME = 'solar-tracker-v3-maplibre';
 const ASSETS = [
     'index.html',
     'assets/js/common.js',
@@ -12,8 +12,17 @@ self.addEventListener('install', (e) => {
     );
 });
 
+self.addEventListener('activate', (e) => {
+    e.waitUntil(
+        caches.keys().then((keys) => {
+            return Promise.all(
+                keys.filter(key => key !== CACHE_NAME).map(key => caches.delete(key))
+            );
+        }).then(() => self.clients.claim())
+    );
+});
+
 self.addEventListener('fetch', (e) => {
-    // skip caching for API calls
     if (e.request.url.includes('/api/')) {
         return;
     }

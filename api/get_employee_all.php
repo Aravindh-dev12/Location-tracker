@@ -72,9 +72,10 @@ try {
     
     while ($row = $result_reports->fetch_assoc()) {
         if ($row['image_path']) {
-            // Convert absolute path to relative web path
-            $relative_path = str_replace(realpath('../') . DIRECTORY_SEPARATOR, '', $row['image_path']);
-            $row['image_path'] = str_replace('\\', '/', $relative_path);
+            $path = str_replace('\\', '/', $row['image_path']);
+            if (strpos($path, 'uploads/') !== false) {
+                $row['image_path'] = substr($path, strpos($path, 'uploads/'));
+            }
         }
         $reports[] = $row;
     }

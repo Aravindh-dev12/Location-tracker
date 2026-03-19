@@ -7,6 +7,7 @@ class MapManager {
         this.map = null;
         this.markers = {};
         this.circles = {};
+        this.isReady = false;
     }
     
     async init(center = { lat: 11.3411, lng: 77.7172 }, zoom = 15) {
@@ -26,11 +27,16 @@ class MapManager {
         this.map.addControl(new maplibregl.FullscreenControl());
 
         return new Promise((resolve) => {
-            this.map.on('load', () => resolve(this));
+            this.map.on('load', () => {
+                this.isReady = true;
+                resolve(this);
+            });
         });
     }
     
     addMarker(id, position, title = "") {
+        if (!this.map || !this.isReady) return;
+
         const pinElement = document.createElement("div");
         pinElement.className = "custom-pin";
         pinElement.innerHTML = `
@@ -72,6 +78,8 @@ class MapManager {
     }
     
     updateMarker(id, newPos, accuracy = 10) {
+        if (!this.map || !this.isReady) return;
+        
         const marker = this.markers[id];
         const circle = this.circles[id];
         if (!marker) return;
