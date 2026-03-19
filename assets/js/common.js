@@ -51,6 +51,10 @@ async function logout(location) {
 }
 
 class LocationDetector {
+    constructor() {
+        this.watchId = null;
+    }
+
     async detectLocation() {
         return new Promise((resolve, reject) => {
             if (!navigator.geolocation) {
@@ -65,7 +69,6 @@ class LocationDetector {
                     method: 'gps'
                 }),
                 err => {
-                    // Fallback to IP Geolocation
                     fetch('https://ipapi.co/json/')
                         .then(res => res.json())
                         .then(data => resolve({
@@ -79,5 +82,32 @@ class LocationDetector {
                 { enableHighAccuracy: true, timeout: 5000 }
             );
         });
+    }
+
+    startWatching(onUpdate, onError) {
+        if (!navigator.geolocation) return;
+        if (this.watchId) navigator.geolocation.clearWatch(this.watchId);
+
+        this.watchId = navigator.geolocation.watchPosition(
+            pos => {
+                onUpdate({
+                    latitude: pos.coords.latitude,
+                    longitude: pos.coords.longitude,
+                    accuracy: pos.coords.accuracy,
+                    method: 'gps'
+                });
+            },
+            err => {
+                if (onError) onError(err);
+            },
+            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        );
+    }
+
+    stopWatching() {
+        if (this.watchId) {
+            navigator.geolocation.clearWatch(this.watchId);
+            this.watchId = null;
+        }
     }
 }

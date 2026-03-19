@@ -351,6 +351,7 @@
         <div class="top-bar">
             <h2 id="sectionTitle">Work Management</h2>
             <div class="user-info">
+                <div id="locationStatus" style="margin-right: 15px;"></div>
                 <span class="user-name" id="employeeName">User</span>
             </div>
         </div>
@@ -449,6 +450,8 @@
         }
 
         let currentLocation = null;
+        let lastSyncTime = 0;
+        const SYNC_INTERVAL = 30000; // 30 seconds
         const detector = new LocationDetector();
         
         async function init() {
@@ -465,14 +468,41 @@
             document.getElementById('profEmail').textContent = user.email;
             document.getElementById('profDept').textContent = user.department || 'Field Operations';
             
-            // Initial Location
-            await updateLocation();
-            
-            // Start Periodic Tracking (30 seconds)
-            setInterval(updateLocation, 30000);
+            // Start Real-time Watching (Find My Device Style)
+            detector.startWatching(
+                async (location) => {
+                    currentLocation = location;
+                    updateLocationUI(location);
+                    
+                    // Throttle server sync
+                    const now = Date.now();
+                    if (now - lastSyncTime > SYNC_INTERVAL) {
+                        lastSyncTime = now;
+                        await saveLocation(location.latitude, location.longitude, location.accuracy, location.method);
+                    }
+                },
+                (err) => {
+                    console.warn('GPS failed, trying IP fallback...');
+                    updateLocation(); // Manual one-time IP fallback
+                }
+            );
             
             // Load History
             loadReports();
+        }
+
+        function updateLocationUI(loc) {
+            const statusDiv = document.getElementById('locationStatus');
+            if (statusDiv) {
+                const acc = Math.round(loc.accuracy);
+                const isExact = loc.method === 'gps' && acc < 50;
+                statusDiv.innerHTML = `
+                    <span style="display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: ${isExact ? '#10b981' : '#f59e0b'}">
+                        <span style="width: 8px; height: 8px; border-radius: 50%; background: ${isExact ? '#10b981' : '#f59e0b'}; animation: pulse 1.5s infinite;"></span>
+                        ${isExact ? 'EXACT LOCATION (GPS)' : 'ESTIMATED LOCATION'} ${acc}m
+                    </span>
+                `;
+            }
         }
 
         function switchSection(id, element) {
