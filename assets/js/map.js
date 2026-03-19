@@ -18,7 +18,7 @@ class MapManager {
 
         this.map = new maplibregl.Map({
             container: this.containerId,
-            style: 'https://demotiles.maplibre.org/style.json',
+            style: 'https://basemaps.cartocdn.com/gl/positron-gl-style/style.json',
             center: [center.lng, center.lat],
             zoom: zoom
         });
@@ -35,7 +35,11 @@ class MapManager {
     }
     
     addMarker(id, position, title = "") {
-        if (!this.map || !this.isReady) return;
+        if (!this.map || !this.isReady) {
+            // Queue for initialization if not ready
+            console.warn(`Map not ready for marker ${id}, will try in next sync`);
+            return;
+        }
 
         const pinElement = document.createElement("div");
         pinElement.className = "custom-pin";
