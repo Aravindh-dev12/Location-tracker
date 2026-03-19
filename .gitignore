@@ -1,0 +1,12 @@
+# DB and Config
+config.php
+api/config.php
+
+# Uploads and temporary files
+uploads/
+*.log
+.gemini/
+
+# OS files
+.DS_Store
+Thumbs.db

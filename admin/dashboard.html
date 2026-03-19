@@ -1,0 +1,855 @@
+<style>
+    :root {
+        --primary: #f59e0b;
+        --secondary: #1f2937;
+        --bg: #f3f4f6;
+        --sidebar: #ffffff;
+        --text: #111827;
+        --text-light: #6b7280;
+        --border: #e5e7eb;
+        --success: #10b981;
+        --danger: #ef4444;
+    }
+
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        font-family: 'Inter', sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        height: 100vh;
+        display: flex;
+        overflow: hidden;
+    }
+
+    /* Sidebar */
+    .sidebar {
+        width: 320px;
+        background: var(--sidebar);
+        border-right: 1px solid var(--border);
+        display: flex;
+        flex-direction: column;
+        z-index: 100;
+    }
+
+    .sidebar-header {
+        padding: 24px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .sidebar-header h1 {
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--secondary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .nav-links {
+        padding: 12px;
+    }
+
+    .nav-item {
+        display: flex;
+        align-items: center;
+        padding: 12px 16px;
+        color: var(--text-light);
+        text-decoration: none;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        border-radius: 8px;
+        margin-bottom: 4px;
+    }
+
+    .nav-item.active {
+        background: #fffbeb;
+        color: var(--primary);
+    }
+
+    .employee-list-container {
+        flex: 1;
+        overflow-y: auto;
+        border-top: 1px solid var(--border);
+        padding: 12px;
+    }
+
+    .employee-card {
+        padding: 12px;
+        border-radius: 8px;
+        margin-bottom: 8px;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: 1px solid transparent;
+    }
+
+    .employee-card:hover {
+        background: #f9fafb;
+        border-color: var(--border);
+    }
+
+    .employee-card.active {
+        background: #fffbeb;
+        border-color: var(--primary);
+    }
+
+    .employee-info {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+
+    .employee-name {
+        font-weight: 600;
+        font-size: 14px;
+    }
+
+    .status-indicator {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .status-online {
+        background: var(--success);
+    }
+
+    .status-offline {
+        background: var(--text-light);
+    }
+
+    .employee-meta {
+        font-size: 11px;
+        color: var(--text-light);
+        margin-top: 4px;
+        line-height: 1.3;
+    }
+
+    /* Main Content */
+    .main-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .view-section {
+        flex: 1;
+        display: none;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    .view-section.active {
+        display: flex;
+    }
+
+    #map {
+        flex: 1;
+        width: 100%;
+    }
+
+    /* Tab Layout */
+    .tab-content {
+        padding: 32px;
+        overflow-y: auto;
+    }
+
+    .card {
+        background: white;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Stats Overlay */
+    .stats-overlay {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        display: flex;
+        gap: 12px;
+        z-index: 50;
+    }
+
+    .stat-badge {
+        background: white;
+        padding: 10px 16px;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        display: flex;
+        flex-direction: column;
+        border: 1px solid var(--border);
+    }
+
+    .stat-label {
+        font-size: 11px;
+        color: var(--text-light);
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+
+    .stat-value {
+        font-size: 18px;
+        font-weight: 800;
+        color: var(--secondary);
+    }
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5);
+        z-index: 1000;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal.active {
+        display: flex;
+    }
+
+    .modal-content {
+        background: white;
+        padding: 32px;
+        border-radius: 16px;
+        width: 100%;
+        max-width: 500px;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 14px;
+        font-weight: 600;
+        margin-bottom: 6px;
+    }
+
+    input,
+    select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+    }
+
+    .btn-primary {
+        background: var(--primary);
+        color: white;
+        padding: 10px 20px;
+        border-radius: 8px;
+        border: none;
+        font-weight: 700;
+        cursor: pointer;
+    }
+
+    /* Reports Bottom Sheet */
+    .bottom-sheet {
+        height: 250px;
+        background: white;
+        border-top: 1px solid var(--border);
+        padding: 20px;
+        overflow-y: auto;
+        flex-shrink: 0;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+    }
+
+    th {
+        text-align: left;
+        color: var(--text-light);
+        padding: 8px;
+        border-bottom: 1px solid var(--border);
+    }
+
+    td {
+        padding: 12px 8px;
+        border-bottom: 1px solid #f9fafb;
+    }
+
+    .btn-approve {
+        background: var(--success);
+        color: white;
+        padding: 4px 8px;
+        border-radius: 4px;
+        border: none;
+        cursor: pointer;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .report-img {
+        width: 40px;
+        height: 40px;
+        border-radius: 4px;
+        object-fit: cover;
+        cursor: pointer;
+        border: 1px solid var(--border);
+    }
+
+    /* Custom Map Pins */
+    .custom-pin {
+        position: relative;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+    .pin-icon {
+        background: var(--primary);
+        color: white;
+        width: 32px;
+        height: 32px;
+        border-radius: 50% 50% 50% 0;
+        transform: rotate(-45deg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        z-index: 2;
+    }
+    .pin-icon svg {
+        transform: rotate(45deg);
+    }
+    .pin-pulse {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: var(--primary);
+        border-radius: 50%;
+        opacity: 0.5;
+        animation: pulse 2s infinite;
+        z-index: 1;
+    }
+    @keyframes pulse {
+        0% { transform: scale(1); opacity: 0.5; }
+        100% { transform: scale(3); opacity: 0; }
+    }
+    .pin-label {
+        position: absolute;
+        top: -24px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: white;
+        padding: 2px 8px;
+        border-radius: 12px;
+        font-size: 10px;
+        font-weight: 800;
+        white-space: nowrap;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        border: 1px solid var(--border);
+        color: var(--secondary);
+    }
+    .custom-pin .pin-icon {
+        font-size: 20px;
+        filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        z-index: 2;
+    }
+
+    .pin-anchor {
+        position: absolute;
+        bottom: -4px;
+        width: 8px;
+        height: 8px;
+        background: var(--primary);
+        border: 2px solid white;
+        border-radius: 50%;
+        box-shadow: 0 0 10px var(--primary);
+    }
+
+    .custom-pin.highlight {
+        transform: scale(1.5);
+        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        z-index: 1000 !important;
+    }
+
+    .custom-pin.highlight .pin-anchor {
+        background: #ef4444;
+        box-shadow: 0 0 20px #ef4444;
+        transform: scale(2);
+    }
+
+    .logout-section {
+        padding: 16px;
+        border-top: 1px solid var(--border);
+    }
+
+    .logout-btn {
+        width: 100%;
+        padding: 10px;
+        background: #f3f4f6;
+        border: none;
+        border-radius: 6px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+</style>
+<!-- Google Maps API -->
+<script>
+    (g => { var h, a, k, p = "The Google Maps JavaScript API", c = "google", l = "importLibrary", q = "__ib__", m = document, b = window; b = b[c] || (b[c] = {}); var d = b["maps"] || (b["maps"] = {}), r = d[q] || (d[q] = new Set), e = new URLSearchParams, u = () => h || (h = new Promise(async (f, n) => { await (a = m.createElement("script")); e.set("libraries", [...r] + String(k || "")); for (k in g) e.set(k.replace(/[A-Z]/g, t => "_" + t[0].toLowerCase()), g[k]); e.set("callback", c + ".maps." + q); a.src = `https://maps.${c}apis.com/maps/api/js?` + e; d[q] = f; a.onerror = () => h = n(Error(p + " could not load.")); a.nonce = m.querySelector("script[nonce]")?.nonce || ""; m.head.append(a) })); d[l] ? console.warn(p + " only loads once. Reusing existing.") : d[l] = (f, ...n) => r.add(f) && u().then(() => d[l](f, ...n)) })({
+        key: "AIzaSyCYxFkL9vcvbaFz-Ut1Lm2Vge5byodujfk",
+        v: "weekly",
+        libraries: ["places", "geocoding"]
+    });
+</script>
+<style>
+    /* Mobile Responsive Styles */
+    .mobile-header {
+        display: none;
+        background: var(--secondary);
+        color: white;
+        padding: 12px 16px;
+        align-items: center;
+        justify-content: space-between;
+        z-index: 1001;
+    }
+
+    @media (max-width: 768px) {
+        body {
+            flex-direction: column;
+        }
+        .sidebar {
+            position: fixed;
+            left: -320px;
+            top: 0;
+            height: 100%;
+            transition: left 0.3s ease;
+            box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+        }
+        .sidebar.active {
+            left: 0;
+        }
+        .mobile-header {
+            display: flex;
+        }
+        .stats-overlay {
+            flex-direction: column;
+            top: 70px;
+            right: 10px;
+        }
+        .stat-badge {
+            padding: 6px 12px;
+        }
+    }
+    .menu-toggle {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+    }
+</style>
+</head>
+
+    <div class="mobile-header">
+        <h2 style="font-size: 16px;">☀️ Solar Admin</h2>
+        <button class="menu-toggle" onclick="toggleSidebar()">☰</button>
+    </div>
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h1>☀️ Solar Admin</h1>
+        </div>
+
+        <div class="sidebar-menu">
+            <div class="menu-item active" onclick="switchTab('live-tracking')">Map View</div>
+            <div class="menu-item" onclick="switchTab('user-management')">Labour Management</div>
+        </div>
+
+        <div class="employee-list-container" id="trackingListSide">
+            <div id="employeeList">
+                <p style="padding: 20px; color: var(--text-light);">Loading employees...</p>
+            </div>
+        </div>
+
+        <div class="logout-section">
+            <button class="logout-btn" onclick="handleLogout()">Logout</button>
+        </div>
+    </div>
+
+    <div class="main-content">
+        <!-- Live Tracking Section -->
+        <div id="live-tracking" class="view-section active">
+            <div class="stats-overlay">
+                <div class="stat-badge">
+                    <span class="stat-label">Total Staff</span>
+                    <span class="stat-value" id="statTotal">--</span>
+                </div>
+                <div class="stat-badge">
+                    <span class="stat-label">Active Now</span>
+                    <span class="stat-value" id="statActive">--</span>
+                </div>
+                <div class="stat-badge">
+                    <span class="stat-label">Pending Reports</span>
+                    <span class="stat-value" id="statPending">--</span>
+                </div>
+            </div>
+
+            <div id="map"></div>
+
+            <div class="bottom-sheet">
+                <h2>Recent Maintenance Reports</h2>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Date</th>
+                            <th>Work Description</th>
+                            <th>Hours</th>
+                            <th>Proof</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="reportsTable">
+                        <tr>
+                            <td colspan="6">Loading reports...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Labour Management Section -->
+        <div id="user-management" class="view-section tab-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
+                <h2 style="font-size: 24px; font-weight: 800;">Labour Management</h2>
+                <button class="btn-primary" onclick="openUserModal()">+ Create New Account</button>
+            </div>
+
+            <div class="card">
+                <table id="userTable">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Email</th>
+                            <th>Department</th>
+                            <th>Total Hours</th>
+                            <th>Reports</th>
+                            <th>Status</th>
+                            <th>Created On</th>
+                        </tr>
+                    </thead>
+                    <tbody id="userTableBody">
+                        <tr>
+                            <td colspan="6">Loading users...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add User Modal -->
+    <div class="modal" id="userModal">
+        <div class="modal-content">
+            <div style="display: flex; justify-content: space-between; margin-bottom: 24px;">
+                <h3>Create Employee Account</h3>
+                <button style="background: none; border: none; font-size: 20px; cursor: pointer;"
+                    onclick="closeUserModal()">&times;</button>
+            </div>
+            <form onsubmit="handleAddEmployee(event)">
+                <div class="form-group">
+                    <label>Full Name</label>
+                    <input type="text" id="addName" placeholder="e.g. John Doe" required>
+                </div>
+                <div class="form-group">
+                    <label>Email Address</label>
+                    <input type="email" id="addEmail" placeholder="e.g. john@solar.com" required>
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="addPassword" placeholder="Minimum 6 characters" required>
+                </div>
+                <div class="form-group">
+                    <label>Phone Number</label>
+                    <input type="text" id="addPhone" placeholder="+1..." required>
+                </div>
+                <div class="form-group">
+                    <label>Department</label>
+                    <select id="addDept">
+                        <option value="Field Operations">Field Operations</option>
+                        <option value="Maintenance">Maintenance</option>
+                        <option value="Installation">Installation</option>
+                        <option value="Admin Support">Admin Support</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-primary" style="width: 100%;" id="addBtn">Create Account</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="../assets/js/common.js"></script>
+    <script src="../assets/js/map.js"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('../sw.js');
+        }
+
+        const mapManager = new MapManager('map');
+        let employeesData = [];
+        let currentTab = 'live-tracking';
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('active');
+        }
+
+        async function init() {
+            const user = getUser();
+            if (!user || user.role !== 'admin') {
+                window.location.href = '../index.html';
+                return;
+            }
+
+            // Load data first so tables aren't stuck on "Loading..."
+            loadDashboardData();
+            
+            try {
+                await mapManager.init();
+            } catch (e) {
+                console.error("Map failed to load:", e);
+                const mapDiv = document.getElementById('map');
+                if (mapDiv) mapDiv.innerHTML = '<div style="padding: 20px; color: #ef4444; font-weight: 600;">Map Error: Please check your Google Maps API settings (ProjectDeniedMapError).</div>';
+            }
+
+            setInterval(loadDashboardData, 5000);
+        }
+
+        async function loadDashboardData() {
+            try {
+                const response = await fetch('../api/get_employee_all.php');
+                const data = await response.json();
+
+                if (data.success) {
+                    employeesData = data.employees;
+                    updateStats(data.stats);
+                    updateEmployeeList(data.employees);
+                    updateMarkers(data.employees);
+                    updateReports(data.recent_reports);
+                    updateUserTable(data.employees);
+                } else {
+                    console.error('API Error:', data.error);
+                    if (data.error.includes('Unauthorized')) {
+                        alert('Session expired. Please login again.');
+                        window.location.href = '../index.html';
+                    }
+                }
+            } catch (error) {
+                console.error('Network error:', error);
+            }
+        }
+
+        function switchTab(tabId) {
+            currentTab = tabId;
+            document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            document.querySelector(`[onclick="switchTab('${tabId}')"]`).classList.add('active');
+
+            // Hide/Show tracking list based on tab
+            const sideList = document.getElementById('trackingListSide');
+            sideList.style.display = (tabId === 'live-tracking') ? 'block' : 'none';
+        }
+
+        function updateStats(stats) {
+            document.getElementById('statTotal').textContent = stats.total_employees;
+            document.getElementById('statActive').textContent = stats.active_now;
+            document.getElementById('statPending').textContent = stats.pending_reports;
+        }
+
+        function updateEmployeeList(employees) {
+            const list = document.getElementById('employeeList');
+            list.innerHTML = employees.map(emp => `
+                <div class="employee-card" onclick="focusEmployee(${emp.id})">
+                    <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                        <div>
+                            <div style="font-weight: 700; color: #111827;">${emp.name}</div>
+                            <div style="font-size: 11px; color: #6b7280;">${emp.department} • ${emp.total_hours}h</div>
+                        </div>
+                        <div class="status-badge ${emp.location && emp.location.is_online ? 'online' : 'offline'}"></div>
+                    </div>
+                    <div class="employee-meta">
+                        <div id="emp-address-${emp.id}" style="color: var(--secondary); font-weight: 500;">Searching address...</div>
+                        <div style="font-size: 10px; margin-top: 2px;">
+                            ${emp.location ? `Last seen: ${emp.location.time_ago}` : 'No data'}
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+
+            employees.forEach(emp => {
+                const addrDiv = document.getElementById(`emp-address-${emp.id}`);
+                if (emp.location) {
+                    if (addrDiv) addrDiv.textContent = `${emp.location.lat.toFixed(4)}, ${emp.location.lng.toFixed(4)}`;
+                    reverseGeocode(emp.id, emp.location.lat, emp.location.lng);
+                } else {
+                    if (addrDiv) addrDiv.textContent = 'Location Pending';
+                }
+            });
+        }
+
+        function updateUserTable(employees) {
+            const table = document.getElementById('userTableBody');
+            if (!employees || employees.length === 0) {
+                table.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 48px; color: var(--text-light);">No employees found. Create your first account!</td></tr>';
+                return;
+            }
+            table.innerHTML = employees.map(emp => `
+                <tr>
+                    <td><strong>${emp.name}</strong></td>
+                    <td>${emp.email}</td>
+                    <td>${emp.department}</td>
+                    <td><span style="font-weight: 700; color: var(--primary);">${emp.total_hours}h</span></td>
+                    <td>${emp.total_reports}</td>
+                    <td>
+                        <span style="color: ${emp.status === 'active' ? 'var(--success)' : 'var(--danger)'}; font-weight: 700;">
+                            ${emp.status.toUpperCase()}
+                        </span>
+                    </td>
+                    <td>${new Date(emp.created_at).toLocaleDateString()}</td>
+                </tr>
+            `).join('');
+        }
+
+        async function reverseGeocode(id, lat, lng) {
+            try {
+                const geocoder = new google.maps.Geocoder();
+                const response = await geocoder.geocode({ location: { lat, lng } });
+                if (response.results[0]) {
+                    const addrDiv = document.getElementById(`emp-address-${id}`);
+                    if (addrDiv) addrDiv.textContent = response.results[0].formatted_address;
+                }
+            } catch (error) {
+                console.error('Geocoding error:', error);
+            }
+        }
+
+        function updateMarkers(employees) {
+            employees.forEach(emp => {
+                if (emp.location) {
+                    const pos = { lat: emp.location.lat, lng: emp.location.lng };
+                    if (!mapManager.markers[emp.id]) {
+                        mapManager.addMarker(emp.id, pos, emp.name);
+                    }
+                    mapManager.updateMarker(emp.id, pos, emp.location.accuracy || 10);
+                } else {
+                    mapManager.removeMarker(emp.id);
+                }
+            });
+        }
+
+        function updateReports(reports) {
+            const table = document.getElementById('reportsTable');
+            table.innerHTML = reports.map(r => `
+                <tr>
+                    <td><strong>${r.employee_name}</strong></td>
+                    <td>${r.report_date}</td>
+                    <td>${r.work_description.substring(0, 50)}...</td>
+                    <td>${parseFloat(r.hours_worked).toFixed(1)}</td>
+                    <td>
+                        ${r.image_path ? `<img src="../${r.image_path}" class="report-img" onclick="window.open('../${r.image_path}')">` : '<span style="color: #ccc;">No photo</span>'}
+                    </td>
+                    <td><span style="color: ${r.status === 'approved' ? '#10b981' : '#f59e0b'}">${r.status.toUpperCase()}</span></td>
+                    <td>
+                        ${r.status === 'pending' ? `<button class="btn-approve" onclick="approveReport(${r.id})">Approve</button>` : '---'}
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function openUserModal() {
+            document.getElementById('userModal').classList.add('active');
+        }
+
+        function closeUserModal() {
+            document.getElementById('userModal').classList.remove('active');
+        }
+
+        async function handleAddEmployee(e) {
+            e.preventDefault();
+            const btn = document.getElementById('addBtn');
+            btn.disabled = true;
+            btn.textContent = 'Creating...';
+
+            const payload = {
+                name: document.getElementById('addName').value,
+                email: document.getElementById('addEmail').value,
+                password: document.getElementById('addPassword').value,
+                phone: document.getElementById('addPhone').value,
+                department: document.getElementById('addDept').value
+            };
+
+            try {
+                const response = await fetch('../api/add_employee.php', {
+                    method: 'POST',
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    alert('Employee account created!');
+                    closeUserModal();
+                    loadDashboardData();
+                } else {
+                    alert('Error: ' + result.error);
+                }
+            } catch (error) {
+                alert('Connection error');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Create Account';
+            }
+        }
+
+        function focusEmployee(id) {
+            mapManager.focusMarker(id);
+        }
+        async function approveReport(id) {
+            if (confirm('Approve this work report?')) {
+                try {
+                    const response = await fetch('../api/approve_report.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ report_id: id })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        alert('Report approved');
+                        loadDashboardData();
+                    }
+                } catch (error) {
+                    alert('Approval failed');
+                }
+            }
+        }
+
+        function handleLogout() {
+            clearUser();
+            window.location.href = '../index.html';
+        }
+
+        window.addEventListener('load', init);
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,13 @@
+# Disable directory listing
+Options -Indexes
+
+# Enable mod_rewrite
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+</IfModule>
+
+# Protect sensitive files
+<FilesMatch "\.(sql|db|sqlite)$">
+    Require all denied
+</FilesMatch>
+
