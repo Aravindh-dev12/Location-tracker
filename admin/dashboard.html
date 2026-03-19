@@ -1,6 +1,6 @@
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+<!-- Font Awesome 6 -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
     :root {
         --primary: #4f46e5;
@@ -446,15 +446,18 @@
 
         <div class="sidebar-menu">
             <div class="menu-item active" onclick="switchTab('live-tracking')">
-                <span style="font-size: 18px; margin-right: 12px;">🗺️</span> Map View
+                <i class="fa-solid fa-map-location-dot" style="width: 20px; margin-right: 12px;"></i> Map View
+            </div>
+            <div class="menu-item" onclick="switchTab('maintenance-reports')">
+                <i class="fa-solid fa-file-contract" style="width: 20px; margin-right: 12px;"></i> Maintenance Reports
             </div>
             <div class="menu-item" onclick="switchTab('user-management')">
-                <span style="font-size: 18px; margin-right: 12px;">👥</span> Labour Management
+                <i class="fa-solid fa-users-gear" style="width: 20px; margin-right: 12px;"></i> Labour Management
             </div>
         </div>
 
-        <div style="padding: 12px 24px; font-size: 11px; font-weight: 800; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px;">
-            Live Tracking
+        <div style="padding: 12px 24px; font-size: 11px; font-weight: 800; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 8px;">
+            <i class="fa-solid fa-tower-broadcast" style="color: var(--primary);"></i> Live Tracking
         </div>
         <div class="employee-list-container" id="trackingListSide">
             <div id="employeeList">
@@ -463,13 +466,15 @@
         </div>
 
         <div class="logout-section">
-            <button class="logout-btn" onclick="handleLogout()">Logout Account</button>
+            <button class="logout-btn" onclick="handleLogout()">
+                <i class="fa-solid fa-right-from-bracket" style="margin-right: 8px;"></i> Logout Account
+            </button>
         </div>
     </div>
 
     <div class="main-content">
         <!-- Live Tracking Section -->
-        <div id="live-tracking" class="view-section active">
+        <div id="live-tracking" class="view-section active" style="position: relative;">
             <div class="stats-overlay">
                 <div class="stat-badge">
                     <span class="stat-label">Total Staff</span>
@@ -480,30 +485,38 @@
                     <span class="stat-value" id="statActive">--</span>
                 </div>
                 <div class="stat-badge">
-                    <span class="stat-label">Pending</span>
+                    <span class="stat-label">Recent Submissions</span>
                     <span class="stat-value" id="statPending">--</span>
                 </div>
             </div>
 
-            <div id="map"></div>
+            <div id="map" style="height: 100%;"></div>
+        </div>
 
-            <div class="bottom-sheet">
-                <h2 class="section-title">Recent Maintenance Reports</h2>
+        <!-- Maintenance Reports Section -->
+        <div id="maintenance-reports" class="view-section tab-content" style="padding: 40px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px; border-bottom: 2px solid var(--border); padding-bottom: 20px;">
+                <div>
+                    <h2 style="font-size: 28px; font-weight: 800; color: var(--secondary);">Maintenance Reports</h2>
+                    <p style="color: var(--text-light); font-size: 14px; margin-top: 4px;">Comprehensive log of all work submitted by field employees.</p>
+                </div>
+            </div>
+
+            <div class="card" style="overflow: hidden; border-radius: 16px; border: 1px solid var(--border);">
                 <table>
                     <thead>
-                        <tr>
+                        <tr style="background: #f8fafc;">
                             <th>Employee</th>
-                            <th>Date</th>
-                            <th>Description</th>
+                            <th>Date & Time</th>
+                            <th>Work Description</th>
                             <th>Hours</th>
-                            <th>Proof</th>
+                            <th>Proof Image</th>
                             <th>Status</th>
-                            <th>Action</th>
                         </tr>
                     </thead>
-                    <tbody id="reportsTable">
+                    <tbody id="maintenanceTableBody">
                         <tr>
-                            <td colspan="7" style="text-align: center; padding: 48px; color: var(--text-light);">Loading reports...</td>
+                            <td colspan="6" style="text-align: center; padding: 60px; color: var(--text-light);">Loading maintenance logs...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -647,12 +660,16 @@
             document.querySelectorAll('.view-section').forEach(s => s.classList.remove('active'));
             document.getElementById(tabId).classList.add('active');
 
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            document.querySelector(`[onclick="switchTab('${tabId}')"]`).classList.add('active');
+            document.querySelectorAll('.nav-item, .menu-item').forEach(n => n.classList.remove('active'));
+            const activeItem = document.querySelector(`[onclick="switchTab('${tabId}')"]`);
+            if (activeItem) activeItem.classList.add('active');
 
-            // Hide/Show tracking list based on tab
+            // Hide/Show tracking list side panel only on Map View
             const sideList = document.getElementById('trackingListSide');
-            sideList.style.display = (tabId === 'live-tracking') ? 'block' : 'none';
+            const sideTitle = sideList.previousElementSibling;
+            const display = (tabId === 'live-tracking') ? 'block' : 'none';
+            sideList.style.display = display;
+            if (sideTitle) sideTitle.style.display = display;
         }
 
         function updateStats(stats) {
@@ -748,19 +765,30 @@
         }
 
         function updateReports(reports) {
-            const table = document.getElementById('reportsTable');
+            const table = document.getElementById('maintenanceTableBody');
+            if (!reports || reports.length === 0) {
+                table.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 60px; color: var(--text-light);">No maintenance reports found.</td></tr>';
+                return;
+            }
             table.innerHTML = reports.map(r => `
                 <tr>
-                    <td><strong>${r.employee_name}</strong></td>
-                    <td>${r.report_date}</td>
-                    <td>${r.work_description.substring(0, 50)}...</td>
-                    <td>${parseFloat(r.hours_worked).toFixed(1)}</td>
                     <td>
-                        ${r.image_path ? `<img src="../${r.image_path}" class="report-img" onclick="window.open('../${r.image_path}')">` : '<span style="color: #ccc;">No photo</span>'}
+                        <div style="font-weight: 700; color: var(--secondary); font-size: 15px;">${r.employee_name}</div>
+                        <div style="font-size: 11px; color: var(--text-light);">Employee ID: #${String(r.employee_id).padStart(4, '0')}</div>
                     </td>
-                    <td><span style="color: ${r.status === 'approved' ? '#10b981' : '#f59e0b'}">${r.status.toUpperCase()}</span></td>
                     <td>
-                        ${r.status === 'pending' ? `<button class="btn-approve" onclick="approveReport(${r.id})">Approve</button>` : '---'}
+                        <div style="font-weight: 600; font-size: 13px;">${new Date(r.report_date).toLocaleDateString(undefined, { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' })}</div>
+                        <div style="font-size: 11px; color: var(--text-light);">Submitted on schedule</div>
+                    </td>
+                    <td style="max-width: 300px;">
+                        <div style="font-size: 14px; line-height: 1.5; color: var(--text);">${r.work_description}</div>
+                    </td>
+                    <td><span style="font-weight: 700; color: var(--primary);">${parseFloat(r.hours_worked).toFixed(1)}h</span></td>
+                    <td>
+                        ${r.image_path ? `<img src="../${r.image_path}" class="report-img" onclick="window.open('../${r.image_path}')" title="Click to enlarge">` : '<span style="color: #cbd5e1; font-size: 12px;">No proof attached</span>'}
+                    </td>
+                    <td>
+                        <span class="status-pill status-approved" style="background: #f1f5f9; color: var(--text-light); border: 1px solid var(--border);">SUBMITTED</span>
                     </td>
                 </tr>
             `).join('');
@@ -812,24 +840,6 @@
 
         function focusEmployee(id) {
             mapManager.focusMarker(id);
-        }
-        async function approveReport(id) {
-            if (confirm('Approve this work report?')) {
-                try {
-                    const response = await fetch('../api/approve_report.php', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ report_id: id })
-                    });
-                    const result = await response.json();
-                    if (result.success) {
-                        alert('Report approved');
-                        loadDashboardData();
-                    }
-                } catch (error) {
-                    alert('Approval failed');
-                }
-            }
         }
 
         function handleLogout() {
