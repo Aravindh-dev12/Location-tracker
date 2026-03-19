@@ -49,16 +49,17 @@ class MapManager {
         const pinElement = document.createElement("div");
         pinElement.className = "custom-pin";
         pinElement.innerHTML = `
-            <div class="pin-anchor"></div>
             <div class="pin-pulse"></div>
-            <div class="pin-icon">👤</div>
+            <div class="pin-icon">
+                <span>👤</span>
+            </div>
             <div class="pin-label">${title.split(' ')[0]}</div>
         `;
 
         console.log(`Adding marker for ${id} at:`, position);
         const marker = new maplibregl.Marker({
             element: pinElement,
-            anchor: 'bottom'
+            anchor: 'center'
         })
         .setLngLat([position.lng, position.lat])
         .addTo(this.map);
