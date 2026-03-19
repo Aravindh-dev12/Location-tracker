@@ -300,6 +300,86 @@
         transition: all 0.2s;
     }
     .logout-btn:hover { background: #fee2e2; color: #dc2626; }
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(15, 23, 42, 0.4);
+        backdrop-filter: blur(8px);
+        z-index: 2000;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .modal.active {
+        display: flex;
+    }
+
+    .modal-content {
+        background: white;
+        padding: 40px;
+        border-radius: 24px;
+        width: 100%;
+        max-width: 500px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        border: 1px solid var(--border);
+        position: relative;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-group label {
+        display: block;
+        font-size: 13px;
+        font-weight: 700;
+        margin-bottom: 8px;
+        color: var(--secondary);
+    }
+
+    input,
+    select {
+        width: 100%;
+        padding: 12px 16px;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        font-size: 14px;
+        font-family: inherit;
+        transition: all 0.2s;
+        background: #f8fafc;
+    }
+
+    input:focus, select:focus {
+        outline: none;
+        border-color: var(--primary);
+        background: white;
+        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+    }
+
+    .btn-primary {
+        background: var(--primary);
+        color: white;
+        padding: 14px 24px;
+        border-radius: 12px;
+        border: none;
+        font-weight: 700;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 4px 6px -1px rgba(79, 70, 229, 0.2);
+    }
+
+    .btn-primary:hover {
+        background: var(--secondary);
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    }
 </style>
 </style>
 <!-- MapLibre GL JS -->
@@ -431,28 +511,31 @@
         </div>
 
         <!-- Labour Management Section -->
-        <div id="user-management" class="view-section tab-content">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;">
-                <h2 style="font-size: 24px; font-weight: 800;">Labour Management</h2>
-                <button class="btn-primary" onclick="openUserModal()">+ Create New Account</button>
+        <div id="user-management" class="view-section tab-content" style="padding: 40px;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 32px; border-bottom: 2px solid var(--border); padding-bottom: 20px;">
+                <div>
+                    <h2 style="font-size: 28px; font-weight: 800; color: var(--secondary);">Labour Management</h2>
+                    <p style="color: var(--text-light); font-size: 14px; margin-top: 4px;">Manage your field team and access their performance stats.</p>
+                </div>
+                <button class="btn-primary" onclick="openUserModal()" style="display: flex; align-items: center; gap: 8px;">
+                    <span style="font-size: 20px;">👤+</span> Create Employee Account
+                </button>
             </div>
 
-            <div class="card">
+            <div class="card" style="overflow: hidden; border-radius: 16px; border: 1px solid var(--border);">
                 <table id="userTable">
                     <thead>
-                        <tr>
-                            <th>Name</th>
-                            <th>Email</th>
+                        <tr style="background: #f8fafc;">
+                            <th>Employee Details</th>
                             <th>Department</th>
-                            <th>Total Hours</th>
-                            <th>Reports</th>
-                            <th>Status</th>
-                            <th>Created On</th>
+                            <th>Work Stats</th>
+                            <th>Account Status</th>
+                            <th>Joined Date</th>
                         </tr>
                     </thead>
                     <tbody id="userTableBody">
                         <tr>
-                            <td colspan="6">Loading users...</td>
+                            <td colspan="5" style="text-align: center; padding: 60px; color: var(--text-light);">Loading user directory...</td>
                         </tr>
                     </tbody>
                 </table>
@@ -611,22 +694,28 @@
         function updateUserTable(employees) {
             const table = document.getElementById('userTableBody');
             if (!employees || employees.length === 0) {
-                table.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 48px; color: var(--text-light);">No employees found. Create your first account!</td></tr>';
+                table.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 60px; color: var(--text-light);">No employees found. Create your first account!</td></tr>';
                 return;
             }
             table.innerHTML = employees.map(emp => `
                 <tr>
-                    <td><strong>${emp.name}</strong></td>
-                    <td>${emp.email}</td>
-                    <td>${emp.department}</td>
-                    <td><span style="font-weight: 700; color: var(--primary);">${emp.total_hours}h</span></td>
-                    <td>${emp.total_reports}</td>
                     <td>
-                        <span style="color: ${emp.status === 'active' ? 'var(--success)' : 'var(--danger)'}; font-weight: 700;">
+                        <div style="font-weight: 700; color: var(--secondary); font-size: 15px;">${emp.name}</div>
+                        <div style="font-size: 11px; color: var(--text-light);">${emp.email}</div>
+                    </td>
+                    <td><span style="font-weight: 600; font-size: 13px;">${emp.department}</span></td>
+                    <td>
+                        <div style="font-weight: 700; color: var(--primary);">${emp.total_hours}h total</div>
+                        <div style="font-size: 11px; color: var(--text-light);">${emp.total_reports} reports submitted</div>
+                    </td>
+                    <td>
+                        <span class="status-pill status-${emp.status === 'active' ? 'approved' : 'rejected'}" style="font-size: 10px;">
                             ${emp.status.toUpperCase()}
                         </span>
                     </td>
-                    <td>${new Date(emp.created_at).toLocaleDateString()}</td>
+                    <td style="font-size: 13px; color: var(--text-light); font-weight: 500;">
+                        ${new Date(emp.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}
+                    </td>
                 </tr>
             `).join('');
         }
