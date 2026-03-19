@@ -19,9 +19,9 @@ class MapManager {
         console.log('Initializing MapLibre at:', center);
         this.map = new maplibregl.Map({
             container: this.containerId,
-            style: 'https://tiles.openfreemap.org/styles/liberty',
+            style: 'https://tiles.openfreemap.org/styles/bright',
             center: [center.lng, center.lat],
-            zoom: zoom
+            zoom: 17
         });
 
         this.map.addControl(new maplibregl.NavigationControl());
