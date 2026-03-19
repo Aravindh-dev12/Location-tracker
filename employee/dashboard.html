@@ -1,13 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         :root {
-            --primary: #f59e0b;
-            --secondary: #1f2937;
-            --bg: #f3f4f6;
+            --primary: #4f46e5;
+            --secondary: #0f172a;
+            --bg: #f8fafc;
             --card-bg: #ffffff;
-            --text: #111827;
-            --text-light: #6b7280;
-            --border: #e5e7eb;
-            --sidebar-width: 260px;
+            --text: #1e293b;
+            --text-light: #64748b;
+            --border: #e2e8f0;
+            --sidebar-width: 300px;
         }
 
         * {
@@ -28,48 +33,58 @@
         /* Sidebar Styles */
         .sidebar {
             width: var(--sidebar-width);
-            background: var(--secondary);
-            color: white;
+            background: white;
+            color: var(--text);
             display: flex;
             flex-direction: column;
             flex-shrink: 0;
+            border-right: 1px solid var(--border);
+            box-shadow: 10px 0 30px rgba(0,0,0,0.02);
         }
 
         .sidebar-header {
-            padding: 24px;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding: 32px 24px;
+            background: linear-gradient(135deg, var(--secondary) 0%, #1e293b 100%);
+            color: white;
         }
 
         .sidebar-header h1 {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 800;
             letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
         .nav-links {
-            padding: 20px 0;
+            padding: 24px 12px;
             flex: 1;
         }
 
         .nav-item {
             display: flex;
             align-items: center;
-            padding: 12px 24px;
-            color: #9ca3af;
+            padding: 14px 20px;
+            color: var(--text-light);
             text-decoration: none;
-            font-weight: 500;
-            font-size: 14px;
+            font-weight: 600;
+            font-size: 15px;
             cursor: pointer;
-            transition: all 0.2s;
+            border-radius: 12px;
+            margin-bottom: 8px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        .nav-item:hover, .nav-item.active {
-            color: white;
-            background: rgba(255,255,255,0.05);
+        .nav-item:hover {
+            background: #f1f5f9;
+            color: var(--secondary);
         }
 
         .nav-item.active {
-            border-right: 4px solid var(--primary);
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 10px 15px -3px rgba(79, 70, 229, 0.3);
         }
 
         .nav-item i {
@@ -78,8 +93,8 @@
         }
 
         .sidebar-footer {
-            padding: 24px;
-            border-top: 1px solid rgba(255,255,255,0.1);
+            padding: 20px;
+            border-top: 1px solid var(--border);
         }
 
         /* Main Content */
@@ -240,14 +255,81 @@
 
         .submit-btn {
             width: 100%;
-            padding: 12px;
+            padding: 14px;
             background: var(--secondary);
             color: white;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             font-weight: 700;
             cursor: pointer;
+            transition: all 0.3s;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
         }
+        .submit-btn:hover { background: var(--primary); transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(245, 158, 11, 0.4); }
+
+        /* CoreUI Overrides for Premium Look */
+        .time-picker { border-radius: 12px; overflow: hidden; border: 1px solid var(--border); background: #f8fafc; }
+        .time-picker button { border: none !important; background: white !important; font-weight: 700 !important; }
+        .time-picker input { border: none !important; background: transparent !important; }
+
+        /* GPS Camera Overlay Styles */
+        #cameraConsole {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: black;
+            z-index: 3000;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        #cameraConsole.active { display: flex; }
+        #cameraVideo { width: 100%; height: 100%; object-fit: cover; }
+        .camera-overlay-ui {
+            position: absolute;
+            bottom: 40px;
+            width: 100%;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        .capture-btn {
+            width: 80px; height: 80px;
+            border-radius: 50%;
+            background: white;
+            border: 6px solid rgba(255,255,255,0.3);
+            cursor: pointer;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+        .close-camera {
+            position: absolute;
+            top: 20px; right: 20px;
+            color: white; font-size: 30px; cursor: pointer;
+            z-index: 3001;
+        }
+        .gps-overlay-preview {
+            position: absolute;
+            bottom: 140px;
+            left: 20px;
+            right: 20px;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            padding: 15px;
+            border-radius: 12px;
+            color: white;
+            font-size: 12px;
+            line-height: 1.5;
+            border-left: 4px solid var(--primary);
+        }
+        .gps-overlay-preview div { margin-bottom: 4px; }
+        .gps-overlay-preview .location-main { font-weight: 800; font-size: 14px; color: var(--primary); }
+
+        .btn-group-dual { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+        .btn-outline { background: white; border: 1.5px solid var(--border); color: var(--secondary); padding: 10px; border-radius: 10px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; }
+        .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+        .image-preview-box { margin-top: 12px; display: none; width: 100%; height: 150px; border-radius: 10px; object-fit: cover; border: 2px solid var(--primary); }
 
         /* Settings Card */
         .profile-card {
@@ -317,32 +399,35 @@
             }
         }
     </style>
-    <!-- Geolocation supported via standard navigator.geolocation -->
     <title>Solar Tracker - Employee Dashboard</title>
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- CoreUI CSS (Scoped for Time Picker) -->
+    <link href="https://cdn.jsdelivr.net/npm/@coreui/coreui/dist/css/coreui.min.css" rel="stylesheet">
     <link rel="manifest" href="../manifest.json">
     <meta name="theme-color" content="#f59e0b">
     <link rel="apple-touch-icon" href="../assets/img/icon-192.png">
 </head>
 <body>
     <div class="mobile-header">
-        <h2 style="font-size: 16px;">☀️ SolarTracker</h2>
-        <button onclick="toggleSidebar()" style="background: none; border: none; color: white; font-size: 24px; cursor: pointer;">☰</button>
+        <h2 style="font-size: 16px;"><i class="fa-solid fa-sun" style="color: var(--primary);"></i> SolarTracker</h2>
+        <button onclick="toggleSidebar()" style="background: none; border: none; color: white; font-size: 24px; cursor: pointer;"><i class="fa-solid fa-bars"></i></button>
     </div>
     <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <h1>☀️ SolarTracker</h1>
+            <h1><i class="fa-solid fa-sun" style="color: var(--primary);"></i> SolarTracker</h1>
         </div>
         <div class="nav-links">
             <div class="nav-item active" onclick="switchSection('work-management', this)">
-                Work Management
+                <i class="fa-solid fa-briefcase"></i> Work Management
             </div>
             <div class="nav-item" onclick="switchSection('settings', this)">
-                Settings
+                <i class="fa-solid fa-user-gear"></i> Settings
             </div>
         </div>
         <div class="sidebar-footer">
-            <button class="logout-btn" onclick="handleLogout()" style="width: 100%; text-align: left; padding: 12px; background: rgba(255,255,255,0.05); color: #cbd5e1; border-radius: 8px;">
-                Logout
+            <button class="logout-btn" onclick="handleLogout()" style="width: 100%; text-align: left; padding: 12px; background: rgba(0,0,0,0.05); color: var(--secondary); border-radius: 8px; border: none; cursor: pointer; transition: all 0.2s; font-weight: 600;">
+                <i class="fa-solid fa-right-from-bracket" style="margin-right: 8px;"></i> Logout Account
             </button>
         </div>
     </div>
@@ -406,41 +491,78 @@
             </div>
             <form onsubmit="handleReportSubmit(event)">
                 <div class="form-group">
+                    <label>Work Date</label>
+                    <input type="date" id="workDate" required>
+                </div>
+
+                <div class="form-group">
                     <label>Work Description</label>
                     <textarea id="workDesc" placeholder="What did you do today?" required></textarea>
                 </div>
                 
                 <div class="form-group">
-                    <label>Work Duration</label>
-                    <div class="time-picker-grid">
-                        <select id="workHours" required>
-                            <option value="">Hours</option>
-                            <script>
-                                for(let i=0; i<=12; i++) document.write(`<option value="${i}">${i} hours</option>`);
-                            </script>
-                        </select>
-                        <select id="workMinutes" required>
-                            <option value="0">00 mins</option>
-                            <option value="15">15 mins</option>
-                            <option value="30">30 mins</option>
-                            <option value="45">45 mins</option>
-                        </select>
-                    </div>
+                    <label>Work Duration (Hours : Minutes)</label>
+                    <div class="time-picker" data-coreui-locale="en-US" data-coreui-toggle="time-picker" id="coreTimePicker"></div>
+                    <input type="hidden" id="workHours" value="0">
+                    <input type="hidden" id="workMinutes" value="0">
+                    <p style="font-size: 11px; color: var(--text-light); margin-top: 8px;">Select the total time spent on this task.</p>
                 </div>
                 
                 <div class="form-group">
-                    <label>Proof Photo</label>
-                    <input type="file" id="workImages" accept="image/*" capture="environment">
+                    <label>Proof Photo (Required)</label>
+                    <div class="btn-group-dual">
+                        <button type="button" class="btn-outline" onclick="document.getElementById('workImages').click()">
+                            <i class="fa-solid fa-image"></i> Upload Gallery
+                        </button>
+                        <button type="button" class="btn-outline" onclick="startCamera()">
+                            <i class="fa-solid fa-camera"></i> Capture GPS Photo
+                        </button>
+                    </div>
+                    <input type="file" id="workImages" accept="image/*" style="display: none;" onchange="previewImage(this)">
+                    <img id="imagePreview" class="image-preview-box">
                 </div>
                 
-                <button type="submit" class="submit-btn" id="submitBtn">Submit Report</button>
+                <button type="submit" class="submit-btn" id="submitBtn">
+                    <i class="fa-solid fa-paper-plane"></i> <span>Submit Work Report</span>
+                </button>
             </form>
         </div>
+    <!-- GPS Camera Console -->
+    <div id="cameraConsole">
+        <div class="close-camera" onclick="stopCamera()">&times;</div>
+        <video id="cameraVideo" autoplay playsinline></video>
+        <div class="gps-overlay-preview" id="gpsPreview">
+            <div class="location-main" id="gpsCityArea">Detecting Location...</div>
+            <div id="gpsStreet">Searching address details...</div>
+            <div id="gpsCoords">Lat: --, Long: --</div>
+            <div id="gpsTime">--/--/---- --:--</div>
+        </div>
+        <div class="camera-overlay-ui">
+            <button type="button" class="capture-btn" id="captureBtn" onclick="takeSnapshot()"></button>
+            <p style="color: white; font-size: 13px; font-weight: 700;">TAP TO CAPTURE GPS PROOF</p>
+        </div>
+        <canvas id="captureCanvas" style="display: none;"></canvas>
     </div>
     
     <script src="../assets/js/common.js"></script>
     <script src="../assets/js/map.js"></script>
+    <!-- CoreUI Bundle JS -->
+    <script src="https://cdn.jsdelivr.net/npm/@coreui/coreui/dist/js/coreui.bundle.min.js"></script>
     <script>
+        // Initialize Form and Date
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('workDate').valueAsDate = new Date();
+            const tpElement = document.getElementById('coreTimePicker');
+            tpElement.addEventListener('change.coreui.time-picker', (event) => {
+                const time = event.value;
+                if (time) {
+                    const parts = time.split(':');
+                    document.getElementById('workHours').value = parts[0];
+                    document.getElementById('workMinutes').value = parts[1];
+                }
+            });
+        });
+
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('../sw.js');
         }
@@ -455,26 +577,20 @@
         const detector = new LocationDetector();
         
         async function init() {
-            // Check auth
             const user = getUser();
             if (!user) {
                 window.location.href = '../index.html';
                 return;
             }
-            
-            // Populate User Data
             document.getElementById('employeeName').textContent = user.name;
             document.getElementById('profName').textContent = user.name;
             document.getElementById('profEmail').textContent = user.email;
             document.getElementById('profDept').textContent = user.department || 'Field Operations';
             
-            // Start Real-time Watching (Find My Device Style)
             detector.startWatching(
                 async (location) => {
                     currentLocation = location;
                     updateLocationUI(location);
-                    
-                    // Throttle server sync
                     const now = Date.now();
                     if (now - lastSyncTime > SYNC_INTERVAL) {
                         lastSyncTime = now;
@@ -482,12 +598,9 @@
                     }
                 },
                 (err) => {
-                    console.warn('GPS failed, trying IP fallback...');
-                    updateLocation(); // Manual one-time IP fallback
+                    updateLocation();
                 }
             );
-            
-            // Load History
             loadReports();
         }
 
@@ -495,29 +608,24 @@
             const statusDiv = document.getElementById('locationStatus');
             if (statusDiv) {
                 const acc = Math.round(loc.accuracy);
-                const isExact = loc.method === 'gps' && acc < 50;
+                const isExact = loc.method === 'gps' && acc < 30;
                 statusDiv.innerHTML = `
-                    <span style="display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; color: ${isExact ? '#10b981' : '#f59e0b'}">
-                        <span style="width: 8px; height: 8px; border-radius: 50%; background: ${isExact ? '#10b981' : '#f59e0b'}; animation: pulse 1.5s infinite;"></span>
-                        ${isExact ? 'EXACT LOCATION (GPS)' : 'ESTIMATED LOCATION'} ${acc}m
-                    </span>
+                    <div style="background: ${isExact ? 'rgba(16, 185, 129, 0.1)' : 'rgba(245, 158, 11, 0.1)'}; padding: 6px 12px; border-radius: 20px; border: 1px solid ${isExact ? '#10b981' : '#f59e0b'}; display: flex; align-items: center; gap: 8px;">
+                        <i class="fa-solid ${isExact ? 'fa-location-crosshairs' : 'fa-signal'}" style="color: ${isExact ? '#10b981' : '#f59e0b'}; font-size: 14px;"></i>
+                        <span style="font-size: 12px; font-weight: 700; color: ${isExact ? '#065f46' : '#92400e'}">
+                            ${isExact ? 'DEVICE GPS LOCKED' : 'ESTIMATED POSITION'} (${acc}m)
+                        </span>
+                        <span style="width: 8px; height: 8px; border-radius: 50%; background: ${isExact ? '#10b981' : '#f59e0b'}; animation: pulse 1s infinite;"></span>
+                    </div>
                 `;
             }
         }
 
         function switchSection(id, element) {
-            // Update Title
-            const titles = {
-                'work-management': 'Work Management',
-                'settings': 'Settings'
-            };
+            const titles = { 'work-management': 'Work Management', 'settings': 'Settings' };
             document.getElementById('sectionTitle').textContent = titles[id];
-
-            // Toggle active class on sections
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-
-            // Toggle active class on nav items
             document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
             element.classList.add('active');
         }
@@ -535,11 +643,152 @@
                 const location = await detector.detectLocation();
                 currentLocation = location;
                 await saveLocation(location.latitude, location.longitude, location.accuracy, location.method);
-            } catch (error) {
-                // Silently fail or use IP fallback
+            } catch (error) {}
+        }
+
+        // Image Preview and Camera Logic
+        let capturedImageBlob = null;
+        let videoStream = null;
+
+        function previewImage(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('imagePreview');
+                    preview.src = e.target.result;
+                    preview.style.display = 'block';
+                    capturedImageBlob = null; // Clear camera capture if uploading
+                }
+                reader.readAsDataURL(input.files[0]);
             }
         }
-        
+
+        async function startCamera() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ 
+                    video: { facingMode: "environment" }, 
+                    audio: false 
+                });
+                videoStream = stream;
+                const video = document.getElementById('cameraVideo');
+                video.srcObject = stream;
+                document.getElementById('cameraConsole').classList.add('active');
+                
+                // Start live GPS updates in overlay
+                updateCameraOverlay();
+            } catch (err) {
+                alert('Camera error: ' + err.message);
+            }
+        }
+
+        function stopCamera() {
+            if (videoStream) {
+                videoStream.getTracks().forEach(track => track.stop());
+            }
+            document.getElementById('cameraConsole').classList.remove('active');
+        }
+
+        async function updateCameraOverlay() {
+            if (!document.getElementById('cameraConsole').classList.contains('active')) return;
+
+            const now = new Date();
+            const timeStr = now.toLocaleDateString() + ' ' + now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            document.getElementById('gpsTime').textContent = timeStr;
+
+            if (currentLocation) {
+                document.getElementById('gpsCoords').textContent = `Lat: ${currentLocation.latitude.toFixed(6)}  Long: ${currentLocation.longitude.toFixed(6)}`;
+                
+                // Quick reverse geocode for overlay
+                try {
+                    const res = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${currentLocation.latitude}&lon=${currentLocation.longitude}`);
+                    const data = await res.json();
+                    if (data.address) {
+                        const city = data.address.city || data.address.town || data.address.village || 'Unknown Location';
+                        const country = data.address.country || '';
+                        document.getElementById('gpsCityArea').textContent = `${city}, ${country} 🇮🇳`;
+                        document.getElementById('gpsStreet').textContent = data.display_name;
+                    }
+                } catch (e) {}
+            }
+
+            setTimeout(updateCameraOverlay, 5000);
+        }
+
+        async function takeSnapshot() {
+            const video = document.getElementById('cameraVideo');
+            const canvas = document.getElementById('captureCanvas');
+            const ctx = canvas.getContext('2d');
+
+            // Set canvas size to video size
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+
+            // 1. Draw Video Frame
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // 2. Draw GPS Overlay on Canvas
+            const padding = 30;
+            const boxWidth = canvas.width - (padding * 2);
+            const boxHeight = 160;
+            const boxY = canvas.height - boxHeight - 40;
+
+            // Draw Background Box
+            ctx.fillStyle = 'rgba(0,0,0,0.6)';
+            ctx.fillRect(padding, boxY, boxWidth, boxHeight);
+            
+            // Draw Accent Line
+            ctx.fillStyle = '#f59e0b';
+            ctx.fillRect(padding, boxY, 6, boxHeight);
+
+            // Text Styling
+            ctx.fillStyle = 'white';
+            ctx.font = 'bold 32px sans-serif';
+            const cityText = document.getElementById('gpsCityArea').textContent;
+            ctx.fillText(cityText, padding + 20, boxY + 50);
+
+            ctx.font = '24px sans-serif';
+            const streetText = document.getElementById('gpsStreet').textContent;
+            const splitStreet = wrapText(ctx, streetText, boxWidth - 40);
+            splitStreet.forEach((line, i) => {
+                ctx.fillText(line, padding + 20, boxY + 85 + (i * 30));
+            });
+
+            const lastLineY = boxY + 85 + (splitStreet.length * 30);
+            ctx.font = 'bold 22px sans-serif';
+            ctx.fillText(document.getElementById('gpsCoords').textContent, padding + 20, lastLineY + 10);
+            ctx.fillText(document.getElementById('gpsTime').textContent, padding + 150, lastLineY + 10);
+
+            // Convert to Blob
+            canvas.toBlob((blob) => {
+                capturedImageBlob = blob;
+                const preview = document.getElementById('imagePreview');
+                preview.src = canvas.toDataURL('image/jpeg');
+                preview.style.display = 'block';
+                stopCamera();
+                // Clear file input
+                document.getElementById('workImages').value = '';
+            }, 'image/jpeg', 0.9);
+        }
+
+        function wrapText(ctx, text, maxWidth) {
+            const words = text.split(' ');
+            const lines = [];
+            let currentLine = words[0];
+
+            for (let i = 1; i < words.length; i++) {
+                const word = words[i];
+                const width = ctx.measureText(currentLine + " " + word).width;
+                if (width < maxWidth) {
+                    currentLine += " " + word;
+                } else {
+                    lines.push(currentLine);
+                    currentLine = word;
+                }
+            }
+            lines.push(currentLine);
+            return lines.slice(0, 2); // Keep max 2 lines
+        }
+
         async function handleReportSubmit(e) {
             e.preventDefault();
             const btn = document.getElementById('submitBtn');
@@ -547,43 +796,68 @@
             btn.textContent = 'Submitting...';
             
             const desc = document.getElementById('workDesc').value;
+            const date = document.getElementById('workDate').value;
             const h = parseFloat(document.getElementById('workHours').value || 0);
             const m = parseFloat(document.getElementById('workMinutes').value || 0);
-            const hours = h + (m / 60); // Convert to decimal
+            const hours = h + (m / 60);
             
-            const files = document.getElementById('workImages').files;
+            if (hours <= 0) {
+                alert('Please select a valid work duration.');
+                btn.disabled = false;
+                btn.textContent = 'Submit Report';
+                return;
+            }
+
+            const fileInput = document.getElementById('workImages');
+            const hasImage = fileInput.files.length > 0 || capturedImageBlob;
+            
+            if (!hasImage) {
+                alert('Please provide a proof photo (Upload or Capture).');
+                btn.disabled = false;
+                btn.textContent = 'Submit Report';
+                return;
+            }
             
             if (!currentLocation) {
-                // Background attempt to get at least IP location
                 try { currentLocation = await detector.detectLocation(); } catch(e) {}
             }
             
             try {
-                const result = await submitWorkReport(desc, hours, currentLocation);
+                // Modified submit call to include date
+                const response = await fetch('../api/submit_work_report.php', {
+                    method: 'POST',
+                    body: JSON.stringify({
+                        description: desc,
+                        hours: hours,
+                        report_date: date, // New field for backend
+                        latitude: currentLocation ? currentLocation.latitude : 0,
+                        longitude: currentLocation ? currentLocation.longitude : 0,
+                        method: currentLocation ? currentLocation.method : 'unknown'
+                    })
+                });
+                const result = await response.json();
                 
                 if (result.success) {
-                    if (files.length > 0) {
-                        for (let file of files) {
-                            const formData = new FormData();
-                            formData.append('image', file);
-                            formData.append('report_id', result.report_id);
-                            const uploadRes = await fetch('../api/upload_image.php', { method: 'POST', body: formData });
-                            const uploadData = await uploadRes.json();
-                            if (!uploadData.success) {
-                                console.error('Image upload failed:', uploadData);
-                            }
-                        }
-                    }
+                    // Upload Image (either from file input or canvas blob)
+                    const formData = new FormData();
+                    formData.append('report_id', result.report_id);
                     
-                    alert('Report submitted successfully!');
+                    if (capturedImageBlob) {
+                        formData.append('image', capturedImageBlob, 'gps_capture.jpg');
+                    } else {
+                        formData.append('image', fileInput.files[0]);
+                    }
+
+                    const uploadRes = await fetch('../api/upload_image.php', { method: 'POST', body: formData });
+                    const uploadData = await uploadRes.json();
+                    
+                    alert('Report and GPS-proof photo submitted successfully!');
                     closeModal();
                     
                     // Reset Form
                     document.getElementById('workDesc').value = '';
-                    document.getElementById('workHours').value = '';
-                    document.getElementById('workMinutes').value = '0';
-                    document.getElementById('workImages').value = '';
-                    
+                    document.getElementById('imagePreview').style.display = 'none';
+                    capturedImageBlob = null;
                     loadReports();
                 } else {
                     alert('Error: ' + result.error);
@@ -592,7 +866,7 @@
                 alert('Submission failed. Check your connection.');
             } finally {
                 btn.disabled = false;
-                btn.textContent = 'Submit Report';
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> <span>Submit Work Report</span>';
             }
         }
         

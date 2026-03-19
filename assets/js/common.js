@@ -55,7 +55,7 @@ class LocationDetector {
         this.watchId = null;
     }
 
-    async detectLocation() {
+    async detectLocation(forceGPS = true) {
         return new Promise((resolve, reject) => {
             if (!navigator.geolocation) {
                 reject('Geolocation not supported');
@@ -69,19 +69,31 @@ class LocationDetector {
                     method: 'gps'
                 }),
                 err => {
-                    fetch('https://ipapi.co/json/')
-                        .then(res => res.json())
-                        .then(data => resolve({
-                            latitude: data.latitude,
-                            longitude: data.longitude,
-                            accuracy: 1000,
-                            method: 'ip'
-                        }))
-                        .catch(() => reject('All location methods failed'));
+                    if (forceGPS) {
+                        reject('GPS Hardware unavailable or permission denied');
+                        return;
+                    }
+                    // Fallback to IP only if not forcing GPS
+                    this.getIPLocation().then(resolve).catch(reject);
                 },
-                { enableHighAccuracy: true, timeout: 5000 }
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
             );
         });
+    }
+
+    async getIPLocation() {
+        try {
+            const res = await fetch('https://ipapi.co/json/');
+            const data = await res.json();
+            return {
+                latitude: data.latitude,
+                longitude: data.longitude,
+                accuracy: 1500, // Approximate IP accuracy
+                method: 'ip'
+            };
+        } catch (e) {
+            throw new Error('IP Geolocation failed');
+        }
     }
 
     startWatching(onUpdate, onError) {
@@ -90,6 +102,7 @@ class LocationDetector {
 
         this.watchId = navigator.geolocation.watchPosition(
             pos => {
+                // Device GPS is always preferred
                 onUpdate({
                     latitude: pos.coords.latitude,
                     longitude: pos.coords.longitude,
@@ -100,7 +113,11 @@ class LocationDetector {
             err => {
                 if (onError) onError(err);
             },
-            { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+            { 
+                enableHighAccuracy: true, // Forces Device GPS hardware use
+                timeout: 15000, 
+                maximumAge: 0 
+            }
         );
     }
 

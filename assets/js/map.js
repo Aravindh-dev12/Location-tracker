@@ -46,6 +46,11 @@ class MapManager {
 
         this.map.addControl(new maplibregl.NavigationControl());
         this.map.addControl(new maplibregl.FullscreenControl());
+        this.map.addControl(new maplibregl.GeolocateControl({
+            positionOptions: { enableHighAccuracy: true },
+            trackUserLocation: true,
+            showUserLocation: true
+        }));
 
         return new Promise((resolve) => {
             this.map.on('load', () => {
@@ -67,13 +72,17 @@ class MapManager {
         }
 
         const pinElement = document.createElement("div");
-        pinElement.className = "custom-pin";
+        pinElement.className = "marker-wrapper";
         pinElement.innerHTML = `
-            <div class="pin-pulse"></div>
-            <div class="pin-icon">
-                <span>👤</span>
+            <div class="snap-label">
+                <span class="label-name">${title}</span>
             </div>
-            <div class="pin-label">${title.split(' ')[0]}</div>
+            <div class="marker-pin-container">
+                <div class="pin-pulse"></div>
+                <div class="snap-pin">
+                    <i class="fa-solid fa-user-tie"></i>
+                </div>
+            </div>
         `;
 
         console.log(`Adding marker for ${id} at:`, position);
